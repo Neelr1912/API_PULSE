@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API-Pulse — Login</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="auth-page">
+  <main class="auth-card">
+    <header class="auth-header">
+      <h1>API-Pulse</h1>
+      <p class="subtitle">Route failure &amp; latency intelligence</p>
+    </header>
+
+    <div class="tab-switcher" role="tablist">
+      <button type="button" id="tab-register" class="tab active" role="tab" aria-selected="true">Register</button>
+      <button type="button" id="tab-login" class="tab" role="tab" aria-selected="false">Login</button>
+    </div>
+
+    <section id="panel-register" class="auth-panel" role="tabpanel">
+      <form id="register-form" class="auth-form" novalidate>
+        <label for="reg-username">Username</label>
+        <input id="reg-username" name="username" type="text" required autocomplete="username" />
+
+        <label for="reg-email">Email</label>
+        <input id="reg-email" name="email" type="email" required autocomplete="email" />
+
+        <label for="reg-password">Password</label>
+        <input id="reg-password" name="password" type="password" required autocomplete="new-password" />
+
+        <p id="register-message" class="form-message" hidden></p>
+
+        <button type="submit" class="btn-primary">
+          <span class="spinner" hidden aria-hidden="true"></span>
+          <span class="btn-label">Register</span>
+        </button>
+      </form>
+    </section>
+
+    <section id="panel-login" class="auth-panel" role="tabpanel" hidden>
+      <form id="login-form" class="auth-form" novalidate>
+        <label for="login-email">Email</label>
+        <input id="login-email" name="email" type="email" required autocomplete="email" />
+
+        <label for="login-password">Password</label>
+        <input id="login-password" name="password" type="password" required autocomplete="current-password" />
+
+        <p id="login-message" class="form-message" hidden></p>
+
+        <button type="submit" class="btn-primary">
+          <span class="spinner" hidden aria-hidden="true"></span>
+          <span class="btn-label">Login</span>
+        </button>
+      </form>
+    </section>
+  </main>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

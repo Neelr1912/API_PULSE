@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: api_pulse_backend
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM:-HS256}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      - API_PORT=8080
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5500,http://127.0.0.1:5500}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FILE=${LOG_FILE:-}
+    env_file:
+      - ./backend/.env
+    restart: unless-stopped
+    volumes:
+      # Persist trained ML models across container restarts
+      - ./backend/ml/models:/app/ml/models
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # LOCAL POSTGRES (uncomment when NOT using Supabase / a remote DB)
+  # If you enable this, update DATABASE_URL in backend/.env to:
+  #   postgresql+asyncpg://postgres:password@db:5432/apipulse
+  # ─────────────────────────────────────────────────────────────────────────
+  # db:
+  #   image: postgres:15-alpine
+  #   container_name: api_pulse_db
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: password
+  #     POSTGRES_DB: apipulse
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #
+  # If you uncomment `db`, also add this to the `backend` service above:
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+
+volumes:
+  postgres_data:

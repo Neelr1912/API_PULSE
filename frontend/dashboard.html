@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API-Pulse — Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    if (!localStorage.getItem("apipulse_token")) {
+      window.location.replace("index.html");
+    }
+  </script>
+</head>
+<body class="dashboard-page">
+  <header class="dashboard-header">
+    <div>
+      <h1>API-Pulse</h1>
+      <p class="subtitle">Welcome, <strong id="welcome-user"></strong></p>
+    </div>
+    <button type="button" id="logout-btn" class="btn-secondary">Logout</button>
+  </header>
+
+  <main class="dashboard-main">
+    <section class="panel upload-panel" aria-labelledby="upload-heading">
+      <h2 id="upload-heading">📂 Upload API Logs</h2>
+
+      <div class="upload-controls">
+        <input type="file" id="csv-file" accept=".csv" />
+        <button type="button" id="upload-btn" class="btn-primary">
+          <span class="spinner" hidden aria-hidden="true"></span>
+          <span class="btn-label">Upload</span>
+        </button>
+      </div>
+
+      <progress id="upload-progress" max="100" hidden></progress>
+      <div id="upload-summary" class="upload-summary" hidden></div>
+
+      <button type="button" id="history-toggle" class="history-toggle" aria-expanded="false">
+        Recent Uploads ▼
+      </button>
+      <div id="history-panel" class="history-panel" hidden>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Filename</th>
+              <th>Rows</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Failed</th>
+            </tr>
+          </thead>
+          <tbody id="history-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="analytics-section" class="analytics-section">
+      <div class="overview-cards">
+        <div class="stat-card">
+          <p class="stat-label">Total Reqs</p>
+          <p class="stat-value" id="stat-total-reqs">—</p>
+          <p class="stat-sub" id="stat-total-sub">last 24h: —</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Error Rate</p>
+          <p class="stat-value" id="stat-error-rate">—</p>
+          <p class="stat-sub"><span id="stat-error-badge" class="stat-badge">—</span></p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Avg Latency</p>
+          <p class="stat-value" id="stat-avg-latency">—</p>
+          <p class="stat-sub"><span id="stat-latency-badge" class="stat-badge">—</span></p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Routes</p>
+          <p class="stat-value" id="stat-routes">—</p>
+          <p class="stat-sub" id="stat-routes-sub">monitored</p>
+        </div>
+      </div>
+
+      <section class="panel">
+        <div class="table-toolbar">
+          <h2>Route Analytics</h2>
+          <input type="search" id="route-filter" placeholder="Filter by route…" aria-label="Filter routes" />
+        </div>
+        <div class="table-wrap">
+          <table class="data-table sortable" id="routes-table">
+            <thead>
+              <tr>
+                <th data-sort="route">Route</th>
+                <th data-sort="method">Method</th>
+                <th data-sort="total_requests">Requests</th>
+                <th data-sort="avg_latency_ms">Avg Latency</th>
+                <th data-sort="p95_latency_ms">P95</th>
+                <th data-sort="error_rate_percent">Error Rate</th>
+                <th data-sort="instability_score">Score</th>
+                <th data-sort="trend">Trend</th>
+                <th>Suggestion</th>
+              </tr>
+            </thead>
+            <tbody id="routes-tbody">
+              <tr><td colspan="9" class="muted">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div id="route-modal" class="modal-overlay" hidden aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-labelledby="modal-route-title">
+      <button type="button" id="modal-close" class="modal-close" aria-label="Close">×</button>
+      <div class="modal-header">
+        <h2 id="modal-route-title">Route</h2>
+        <span id="modal-score-badge" class="score-badge healthy">—</span>
+      </div>
+      <p id="modal-loading" class="muted">Loading charts…</p>
+      <div class="modal-stats">
+        <div><span>Avg</span><strong id="modal-avg">—</strong></div>
+        <div><span>P95</span><strong id="modal-p95">—</strong></div>
+        <div><span>P99</span><strong id="modal-p99">—</strong></div>
+        <div><span>Min</span><strong id="modal-min">—</strong></div>
+        <div><span>Max</span><strong id="modal-max">—</strong></div>
+        <div><span>Error rate</span><strong id="modal-error">—</strong></div>
+      </div>
+      <div class="modal-charts">
+        <div class="chart-box">
+          <h3>Daily latency (30d)</h3>
+          <canvas id="chart-daily" height="200"></canvas>
+        </div>
+        <div class="chart-box">
+          <h3>Hourly latency</h3>
+          <canvas id="chart-hourly" height="200"></canvas>
+        </div>
+        <div class="chart-box">
+          <h3>Status codes</h3>
+          <canvas id="chart-status" height="200"></canvas>
+        </div>
+      </div>
+      <div id="modal-suggestion" class="modal-suggestion"></div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/upload.js"></script>
+  <script>
+    document.getElementById("welcome-user").textContent =
+      localStorage.getItem("apipulse_user") || "User";
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      localStorage.removeItem("apipulse_token");
+      localStorage.removeItem("apipulse_user");
+      window.location.href = "index.html";
+    });
+  </script>
+</body>
+</html>

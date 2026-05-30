@@ -1,0 +1,33 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Logs
+logs/
+*.log
+api-pulse.log*
+
+# Models (ignore serialized models, keep the script)
+backend/ml/models/*.joblib
+
+# Docker
+docker-compose.override.yml
