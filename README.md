@@ -420,6 +420,51 @@ Returns the top N highest-risk routes sorted by risk level and predicted latency
 
 ---
 
+## 🎯 Project Demonstration Guide
+
+When presenting API-Pulse, follow this end-to-end workflow to demonstrate its full capabilities:
+
+### 1. User Registration & Login
+**Show:**
+- `POST /auth/register`
+- `POST /auth/login`
+
+**Explain:**
+Users are authenticated using JWT. Passwords are securely hashed and stored in PostgreSQL.
+
+### 2. Upload API Logs
+**Show:**
+- `POST /upload/csv`
+
+**Explain:**
+API logs are uploaded as CSV files. The system validates the data and stores it in PostgreSQL.
+*Example Result: 600 rows uploaded, 10 routes detected, 0 failures.*
+
+### 3. Real-Time Analytics
+**Show:**
+- `GET /analytics/overview`
+- `GET /analytics/summary`
+
+**Explain:**
+The system calculates latency, error rates, instability scores, route statistics, and performance trends using native PostgreSQL aggregations.
+
+### 4. Machine Learning Training
+**Show:**
+- Run `python ml/train.py` in the terminal.
+
+**Explain:**
+Historical API logs are used to train a Random Forest model that learns latency patterns.
+
+### 5. Latency & Risk Predictions
+**Show:**
+- `GET /api/predict/routes`
+- `GET /api/predict/top-risks`
+
+**Explain:**
+The model predicts future API latency and identifies routes likely to become bottlenecks before they actually fail.
+
+---
+
 ## 🤖 ML Workflow
 
 ```
