@@ -38,6 +38,9 @@ app = FastAPI(
         "url": "https://github.com/yourusername/api-pulse",
     },
     lifespan=lifespan,
+    swagger_ui_parameters={
+        "defaultModelsExpandDepth": -1,
+    },
 )
 app.add_middleware(
     CORSMiddleware,
