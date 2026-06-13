@@ -3,10 +3,13 @@ Step 3 API verification script.
 Usage (from api-pulse/, with server running on :8000):
   cd backend && python scripts/test_step3.py
 
+Required env:
+  TEST_PASSWORD=your_password
+
 Optional env:
   API_BASE=http://127.0.0.1:8000
   TEST_EMAIL=upload@test.com
-  TEST_PASSWORD=secret123
+  TEST_USERNAME=step3user
 """
 from __future__ import annotations
 
@@ -19,13 +22,16 @@ import httpx
 
 API_BASE = os.getenv("API_BASE", "http://127.0.0.1:8000")
 EMAIL = os.getenv("TEST_EMAIL", "step3@test.com")
-PASSWORD = os.getenv("TEST_PASSWORD", "secret123")
+PASSWORD = os.getenv("TEST_PASSWORD", "")
 USERNAME = os.getenv("TEST_USERNAME", "step3user")
 ROOT = Path(__file__).resolve().parents[2]
 CSV_PATH = ROOT / "sample_logs" / "sample_api_logs.csv"
 
 
 def main() -> int:
+    if not PASSWORD:
+        print("ERROR: Set TEST_PASSWORD environment variable before running tests.")
+        return 1
     print("=== Step 3 API tests ===\n")
     failures = 0
 

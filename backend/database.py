@@ -14,13 +14,24 @@ DATABASE_URL = os.getenv(
 
 
 def _connect_args() -> dict:
-    """Supabase (and most cloud Postgres) require SSL."""
+    """Supabase (and most cloud Postgres) require SSL.
+    
+    Supabase uses PgBouncer in transaction pooling mode which does not support
+    prepared statements. Setting statement_cache_size=0 disables them.
+    """
+    args: dict = {}
     ssl = os.getenv("DATABASE_SSL", "").strip()
     if ssl:
-        return {"ssl": ssl}
-    if "supabase.co" in DATABASE_URL:
-        return {"ssl": "require"}
-    return {}
+        args["ssl"] = ssl
+    elif "supabase.co" in DATABASE_URL:
+        args["ssl"] = "require"
+
+    # PgBouncer (used by Supabase pooler) does not support prepared statements.
+    # Disable the asyncpg statement cache to prevent DuplicatePreparedStatementError.
+    if "supabase.co" in DATABASE_URL or "pooler" in DATABASE_URL:
+        args["statement_cache_size"] = 0
+
+    return args
 
 
 engine = create_async_engine(

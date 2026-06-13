@@ -1,10 +1,14 @@
+import os
 import httpx
 
 API_BASE = "http://127.0.0.1:8080"
-EMAIL = "step3@test.com"
-PASSWORD = "secret123"
+EMAIL = os.getenv("TEST_EMAIL", "step3@test.com")
+PASSWORD = os.getenv("TEST_PASSWORD", "")
 
 def run_tests():
+    if not PASSWORD:
+        print("ERROR: Set TEST_PASSWORD environment variable before running tests.")
+        return
     print("=== Validation Testing ===")
     
     with httpx.Client(base_url=API_BASE, timeout=60.0) as client:

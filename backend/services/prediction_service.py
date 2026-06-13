@@ -1,38 +1,25 @@
-from pathlib import Path
+"""
+Prediction service — uses the pure-numpy Random Forest for inference.
+
+The sklearn pipeline is only needed at *training* time (ml/train.py).
+At runtime we load the exported numpy model, which has zero sklearn DLL
+dependencies and works regardless of Windows App Control policies.
+"""
+
 from typing import Any, Dict
 
-import joblib
-import pandas as pd
-
-MODELS_DIR = Path(__file__).resolve().parent.parent / "ml" / "models"
-MODEL_PATH = MODELS_DIR / "rf_latency_model.joblib"
-
-# Cache the loaded model
-_model_pipeline = None
-
-
-def load_model():
-    """Loads the ML pipeline from disk if not already loaded."""
-    global _model_pipeline
-    if _model_pipeline is None:
-        if not MODEL_PATH.exists():
-            return None
-        try:
-            _model_pipeline = joblib.load(MODEL_PATH)
-        except Exception as e:
-            raise ValueError(f"Failed to load model file. It may be corrupted: {e}")
-    return _model_pipeline
+from ml.numpy_forest import predict as numpy_predict
 
 
 def calculate_risk_level(predicted_latency: float, failure_rate_percent: float) -> str:
     """
-    Categorizes the risk level based on latency and failure rate.
-    
+    Categorises the risk level based on latency and failure rate.
+
     Risk Levels:
-    - LOW: latency < 500ms
-    - MEDIUM: latency 500-1000ms
-    - HIGH: latency 1000-2000ms
-    - CRITICAL: latency > 2000ms OR failure rate > 20%
+    - LOW:      latency < 500ms
+    - MEDIUM:   latency 500–1000ms
+    - HIGH:     latency 1000–2000ms
+    - CRITICAL: latency > 2000ms  OR  failure rate > 20%
     """
     if failure_rate_percent > 20.0 or predicted_latency > 2000.0:
         return "CRITICAL"
@@ -46,26 +33,18 @@ def calculate_risk_level(predicted_latency: float, failure_rate_percent: float) 
 
 def predict_route_latency(features: Dict[str, Any]) -> float:
     """
-    Predicts the response time latency given a dictionary of features.
-    
-    Expected features keys:
-    - route (str)
-    - method (str)
-    - status_code (int)
-    - payload_size_bytes (float)
-    - hour_of_day (int)
-    - day_of_week (int)
-    - hist_avg_latency (float)
-    - instability_score (float)
-    """
-    model = load_model()
-    if not model:
-        raise ValueError("Model not found. Please train the model first.")
+    Predicts response-time latency given a dict of features.
 
-    # Model expects a DataFrame
-    df_features = pd.DataFrame([features])
-    
-    # Predict returns an array, we extract the first element
-    predicted_latency = model.predict(df_features)[0]
-    
-    return float(predicted_latency)
+    Expected keys:
+    - route             (str)
+    - method            (str)
+    - status_code       (int)
+    - payload_size_bytes (float)
+    - hour_of_day       (int)
+    - day_of_week       (int)
+    - hist_avg_latency  (float)
+    - instability_score (float)
+
+    Raises ValueError if the model file is missing.
+    """
+    return numpy_predict(features)

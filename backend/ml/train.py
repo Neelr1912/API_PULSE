@@ -3,6 +3,9 @@ import os
 import sys
 from pathlib import Path
 
+# Add backend directory to sys.path so we can import from local modules
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import joblib
 import numpy as np
 import pandas as pd
@@ -16,9 +19,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sqlalchemy import select
 
-# Add backend directory to sys.path so we can import from local modules
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-
+from ml.numpy_forest import export_sklearn_forest, save_numpy_model
 from database import AsyncSessionLocal
 from models import APILog
 from core.logger import get_logger
@@ -185,10 +186,18 @@ def train_models():
     print(f"RMSE: {np.sqrt(mean_squared_error(y_test, rf_preds)):.2f}")
     print(f"R2:   {r2_score(y_test, rf_preds):.4f}")
 
-    # Model Persistence
+    # ── Model Persistence ─────────────────────────────────────────────────────
+    # 1. Save the full sklearn pipeline (useful for retraining / inspection)
     model_path = MODELS_DIR / "rf_latency_model.joblib"
     joblib.dump(rf_pipeline, model_path)
-    
+
+    # 2. Export a pure-numpy version so the FastAPI server can load the model
+    #    without needing sklearn DLLs (works around Windows App Control blocks).
+    print("\nExporting numpy model for DLL-free inference...")
+    numpy_model = export_sklearn_forest(rf_pipeline, features)
+    save_numpy_model(numpy_model)
+    print(f"Numpy model saved → {MODELS_DIR / 'rf_numpy_model.joblib'}")
+
     logger.info("Training complete and model saved", extra={"structured_data": {
         "model_path": str(model_path),
         "rf_r2_score": r2_score(y_test, rf_preds),
