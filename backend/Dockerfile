@@ -22,14 +22,17 @@ COPY backend/requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy backend source code
+# Copy backend source code (includes ml/models/rf_numpy_model.joblib)
 COPY backend/ .
 
 # Create a non-root user for security
 RUN addgroup --system appgroup && \
     adduser  --system --ingroup appgroup --no-create-home appuser && \
+    # Ensure models dir exists and is writable (for future retraining)
     mkdir -p /app/ml/models && \
-    chown -R appuser:appgroup /app/ml/models
+    chown -R appuser:appgroup /app/ml/models && \
+    # Verify model file was copied correctly
+    ls -lh /app/ml/models/
 
 USER appuser
 
