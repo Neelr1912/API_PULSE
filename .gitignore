@@ -27,8 +27,8 @@ logs/
 *.log
 api-pulse.log*
 
-# Models (ignore serialized models, keep the script)
-backend/ml/models/*.joblib
+# Models — ignore the large sklearn pipeline, keep the lightweight numpy model
+backend/ml/models/rf_latency_model.joblib
 
 # Docker
 docker-compose.override.yml
