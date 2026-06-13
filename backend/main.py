@@ -72,7 +72,14 @@ app.include_router(predictions_router, prefix="/api/predict", tags=["Predictions
 @app.get("/health")
 async def health_check():
     """Liveness probe for deployment and local dev."""
-    return {"status": "ok", "service": "api-pulse"}
+    model_path = Path(__file__).parent / "ml" / "models" / "rf_numpy_model.joblib"
+    return {
+        "status": "ok",
+        "service": "api-pulse",
+        "model_exists": model_path.exists(),
+        "model_path": str(model_path),
+        "model_size_bytes": model_path.stat().st_size if model_path.exists() else 0,
+    }
 
 
 @app.get("/")
