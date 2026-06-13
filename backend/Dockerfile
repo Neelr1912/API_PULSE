@@ -45,4 +45,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
 # Production entrypoint
 # --workers 1 is correct here because async FastAPI is already concurrent.
 # Increase to --workers 2+ only if you run CPU-bound workloads.
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]
+# Render (and most cloud platforms) inject $PORT at runtime.
+# Using shell form so the $PORT variable is expanded correctly.
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080} --workers 1
