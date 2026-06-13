@@ -1,4 +1,5 @@
 import os
+import warnings
 from datetime import datetime, timedelta, timezone
 
 from dotenv import load_dotenv
@@ -6,6 +7,9 @@ from jose import jwt
 from passlib.context import CryptContext
 
 load_dotenv()
+
+# Suppress passlib's bcrypt version warning (harmless with bcrypt 4.x)
+warnings.filterwarnings("ignore", ".*error reading bcrypt version.*")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
