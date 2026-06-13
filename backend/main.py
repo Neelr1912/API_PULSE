@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -25,30 +24,16 @@ CORS_ORIGINS = [o.strip() for o in _cors_origins.split(",") if o.strip()]
 NUMPY_MODEL_PATH = Path(__file__).parent / "ml" / "models" / "rf_numpy_model.joblib"
 
 
-async def _auto_train():
-    """Train the ML model on startup if the model file is missing."""
-    if NUMPY_MODEL_PATH.exists():
-        logger.info("ML model found — skipping auto-train.")
-        return
-    logger.warning("ML model not found — running auto-train on startup...")
-    try:
-        # train_models() is synchronous (uses asyncio.run internally),
-        # so we run it in a thread to avoid blocking the event loop.
-        from ml.train import train_models
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, train_models)
-        if NUMPY_MODEL_PATH.exists():
-            logger.info("Auto-train complete — model ready.")
-        else:
-            logger.warning("Auto-train ran but model file still missing (no data in DB?).")
-    except Exception as e:
-        logger.error(f"Auto-train failed: {e}. Predictions will return 503 until model is trained.")
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan: auto-train model if missing, dispose DB pool on shutdown."""
-    await _auto_train()
+    """Application lifespan: log model status on startup, dispose DB pool on shutdown."""
+    if NUMPY_MODEL_PATH.exists():
+        logger.info("ML model found and ready.")
+    else:
+        logger.warning(
+            "ML model not found. Predictions will return 503 until the model is trained. "
+            "Run: python ml/train.py"
+        )
     yield
     await engine.dispose()
 
